@@ -7,45 +7,9 @@ import type { EventAdapterType } from "../utils/adapter";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-//type EventsResult = ReturnType<typeof eventAdapter>[];
 
-/*export interface Adapter {
-	(config: RequestConfig): Promise<any>;
-}
 
-  type ResponseType = "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";  
 
-interface RequestConfig<T = any> {
-	adapter?: Adapter;
-	baseURL?: string;
-	data?: T;
-	headers?: Record<string, string>;
-	maxBodyLength?: number;
-	maxContentLength: number;
-	maxRedirects: number;
-	method: "get" | "post" | "delete";
-	responseType?: ResponseType;
-	timeout?: number;
-	url: "string";	
-}
-interface Response<T = never> {
-	//data: T;
-	status: number;
-	statusText: string;
-	headers: Record<string, string>;
-	config: RequestConfig<T>;
-	request?: any;
-}
-
-interface EventResponse extends Response {
-	data: EventData;
-} */
-
-const upcomingEventsResponseHandler = 
-	async (response: EventData): Promise<EventAdapterType[]> => {
-		const events = await response.results.map((item: EventResult ) => eventAdapter(item)) ?? [];
-		return Promise.resolve(events);
-	};
 
 // Define a service using a base URL and expected endpoints
 export const eventSlice = createApi({

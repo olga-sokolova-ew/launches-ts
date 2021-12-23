@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-//import logger from "redux-logger";
+import logger from "redux-logger";
 import {
 	persistStore,
 	persistReducer,
@@ -12,7 +12,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import rootReducer from "../rootReducer";
-//import { isDevelopment } from "../../utils/helper";
+import { isDevelopment } from "../../utils/helper";
 //import { GetDefaultMiddlewareOptions } from "./store.types";
 //import { Middleware } from "redux";
 import { eventSlice } from "../../services/api";
@@ -57,12 +57,17 @@ const persistedReducer = persistReducer(
 const store = configureStore({
 	reducer: persistedReducer,
 	//middleware: ( getDefaultMiddleware ) => getStoreMiddleware( getDefaultMiddleware ),
-	middleware: (getDefaultMiddleware) =>
-		getDefaultMiddleware({
+	middleware: (getDefaultMiddleware) => {
+		const extraMiddleweres = [eventSlice.middleware];
+
+		if (isDevelopment()) {extraMiddleweres.push(logger);}
+
+		return getDefaultMiddleware({
 			serializableCheck: {
 				ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
 			}
-		}).concat([eventSlice.middleware]),
+		}).concat(extraMiddleweres);
+	},
 });
 
 const persistor = persistStore(store);
