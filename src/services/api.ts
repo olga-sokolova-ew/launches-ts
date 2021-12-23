@@ -1,8 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { APIRoute } from "../utils/const";
-//import {eventAdapter} from "utils/adapter";
-//import type { EventResult } from "utils/adapter.types";
-import { EventData } from "utils/adapter.types";
+import {eventAdapter} from "../utils/adapter";
+import type { EventResult } from "../utils/adapter.types";
+import { EventData } from "../utils/adapter.types";
+import type { EventAdapterType } from "../utils/adapter";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -40,17 +41,24 @@ interface EventResponse extends Response {
 	data: EventData;
 } */
 
+const upcomingEventsResponseHandler = 
+	async (response: EventData): Promise<EventAdapterType[]> => {
+		const events = await response.results.map((item: EventResult ) => eventAdapter(item)) ?? [];
+		return Promise.resolve(events);
+	};
+
 // Define a service using a base URL and expected endpoints
 export const eventSlice = createApi({
 	reducerPath: "eventSlice",
 	baseQuery: fetchBaseQuery({ baseUrl: BACKEND_URL }),
 	endpoints: (builder) => ({
-		getEvents: builder.query<EventData, void>({
+		getEvents: builder.query<EventAdapterType[], void>({
 			query: () => APIRoute.EVENTS,
-			/*transformResponse: (response: EventData) => 
-			  return response.results.map((item) => eventAdapter(item));
+			transformResponse: (response: EventData) => {
+			
+				return response.results.map((item) => eventAdapter(item));
 
-			}*/
+			}
 		}),
 	}),
 });
