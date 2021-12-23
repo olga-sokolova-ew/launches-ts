@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { APIRoute } from "../utils/const";
 //import {eventAdapter} from "utils/adapter";
@@ -7,34 +5,6 @@ import { APIRoute } from "../utils/const";
 import { EventData } from "utils/adapter.types";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
-
-const axiosInstance = axios.create({
-	method: "get",
-	baseURL: BACKEND_URL,
-	timeout: 15000,
-	responseType: "json",
-	maxContentLength: 2000,
-	validateStatus: (status:number) => status >= 200 && status < 300,
-	maxRedirects: 5,
-});
-
-const onFulfilled = <T=unknown>(value: T):T => value;
-
-const onRejected = <T=unknown>(err: T):T => {
-	//const { response } = err;
-	throw err;
-};
-
-axiosInstance.interceptors.response.use(
-	onFulfilled,
-	onRejected
-);
-export { axiosInstance };
-
-
-
-
 
 //type EventsResult = ReturnType<typeof eventAdapter>[];
 
@@ -77,8 +47,8 @@ export const eventSlice = createApi({
 	endpoints: (builder) => ({
 		getEvents: builder.query<EventData, void>({
 			query: () => APIRoute.EVENTS,
-			/*transformResponse: (response: EventData) => {
-				return response.results.map((item) => eventAdapter(item));
+			/*transformResponse: (response: EventData) => 
+			  return response.results.map((item) => eventAdapter(item));
 
 			}*/
 		}),

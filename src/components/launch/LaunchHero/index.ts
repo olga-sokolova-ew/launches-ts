@@ -1,1 +1,0 @@
-export { LaunchHero} from "./LaunchHero";
