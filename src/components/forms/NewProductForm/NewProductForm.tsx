@@ -1,6 +1,8 @@
 import {
 	Box, Button, List, Paper, TextField, Theme, Typography
 } from "@material-ui/core";
+import IconButton from "@material-ui/core/IconButton";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { ListItem } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Formik } from "formik";
@@ -94,12 +96,14 @@ export const NewProductForm: FC<Props> =
 	({ initialValues, validationSchema, onSubmit, onInputChange }) => {
 		const intl = useIntl();
 		const classes = useStyles();
+
 		const onDrop = useCallback(
 			acceptedFiles => {
 				onInputChange(acceptedFiles);
 			},
 			[]
 		);
+
 		const {
 			acceptedFiles,
 			fileRejections,
@@ -112,9 +116,17 @@ export const NewProductForm: FC<Props> =
 
 		const { ref, ...rootProps } = getRootProps();
 
+		const onDelete = () => {
+			console.log("Delete file");
+		};
+
 		const acceptedFileItems = acceptedFiles.map((file) => (
 			<ListItem key={file.name} >
 				{file.name} - {file.size} bytes
+				<IconButton onClick={onDelete}>
+					<CloseOutlinedIcon color="primary" />
+				</IconButton>
+
 			</ListItem>
 		));
 

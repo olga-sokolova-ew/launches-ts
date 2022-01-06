@@ -20,7 +20,6 @@ const PrivateRoute: FC<Props> = ({
 	const authorizationStatus = useTypedSelector(state => state.auth.authorizationStatus);
 
 	const isUserLoggedOut = !!(authorizationStatus === AuthorizationStatus.NO_AUTH);
-	console.log("isUserLoggedOut" + isUserLoggedOut);
 
 	if (authorizationStatus === AuthorizationStatus.UNKNOWN) {
 		return <Loader />;
