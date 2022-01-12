@@ -3,12 +3,12 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
-	FC, useEffect, useRef, useState
+	FC, useCallback, useEffect, useRef, useState
 } from "react";
 import { useIntl } from "react-intl";
 import { useGetLaunchesQuery } from "../../../services/api";
 import type { LaunchAdapterType } from "../../../utils/adapter";
-import { REQUEST_QNT } from "../../../utils/const";
+import { REQUEST_QNT as increment } from "../../../utils/const";
 import { Loader } from "../../common/Loader";
 import { LaunchCard } from "../LaunchCard";
 
@@ -27,63 +27,69 @@ const useStyles = makeStyles({
 	}
 });
 
-const options = {
+const intersectionObserverInit = {
 	root: null,
 	rootMargin: "0px",
 	threshold: 1.0
 };
 
 export const LaunchesBlock: FC = () => {
-	const [currentLaunches, setCurrentLaunches] = useState<LaunchAdapterType[]>([]);
-	const [launchesQnt, setlaunchesQnt] = useState<number>(0);
 	const classes = useStyles();
 	const intl = useIntl();
-	const [totalCount, setTotalCount] = useState<number>(1);
+	const [currentLaunches, setCurrentLaunches] = useState<LaunchAdapterType[]>([]);
+	const [launchesQnt, setLaunchesQnt] = useState<number>(0);
+	const [totalCount, setTotalCount] = useState<number>(0);
 
+	const observerRef = useRef<IntersectionObserver>();
 
-	const observerLoaderRef = useRef<HTMLDivElement>();
-
-	const { data: currentData = null, isError: isLaunchesError,
-		isFetching: isLaunchesFetching } = useGetLaunchesQuery(launchesQnt);
-
-	useEffect(
-		() => {
-			const observer = new IntersectionObserver(
-				(entries: IntersectionObserverEntry[]) => {
-					const [entry] = entries;
-					if (entry.intersectionRatio >= 1) {
-						setlaunchesQnt((prev) => prev + REQUEST_QNT);
-					}
-				},
-				options
-			);
-
-			if (observerLoaderRef.current) observer.observe(observerLoaderRef.current);
-
-			return () => {
-				if (observerLoaderRef.current) observer.unobserve(observerLoaderRef.current);
-			};
-		},
-		[observerLoaderRef]
-	);
-
+	const {
+		data: currentData = null,
+		isError: isLaunchesError,
+		isFetching: isLaunchesFetching
+	} = useGetLaunchesQuery(launchesQnt);
 
 	useEffect(
 		() => {
-			if (currentLaunches.length < totalCount) {
-				if (currentData && currentData.launches.length > 0) {
-					const allLaunches = new Set([...currentLaunches, ...currentData.launches]);
-					//setCurrentLaunches([...allLaunches]);
-					setCurrentLaunches(Array.from(allLaunches));
-				}
-				if (currentData && currentData.totalQnt && !isLaunchesError) {
-					setTotalCount(currentData?.totalQnt);
-				}
+			if (currentData && currentData.launches.length > 0) {
+				setTotalCount(currentData.totalQnt);
+
+				const allLaunches = new Set([...currentLaunches, ...currentData.launches]);
+				//setCurrentLaunches([...allLaunches]);
+				setCurrentLaunches(Array.from(allLaunches));
 			}
 		},
-		[launchesQnt]
+		[currentData]
 	);
 
+	const infinityScrollCallback = useCallback(
+		(htmlNode: Element) => {
+			if (isLaunchesFetching) {
+				return;
+			}
+
+			if (observerRef?.current) {
+				observerRef.current.disconnect();
+			}
+
+			observerRef.current = new IntersectionObserver(
+				entries => {
+					const isAbleToLoadMore =
+						!isLaunchesFetching && currentLaunches.length < totalCount;
+					const [entry] = entries;
+
+					if (entry.isIntersecting && isAbleToLoadMore) {
+						setLaunchesQnt(oldValue => oldValue + increment);
+					}
+				},
+				intersectionObserverInit
+			);
+
+			if (htmlNode) {
+				observerRef.current?.observe(htmlNode);
+			}
+		},
+		[isLaunchesFetching, totalCount, currentLaunches.length]
+	);
 
 	return (
 		<div className={classes.launchesWrapper}>
@@ -120,12 +126,18 @@ export const LaunchesBlock: FC = () => {
 					{(currentLaunches.length < totalCount) &&
 						<Box
 							className={classes.loaderWrapper}
-							ref={observerLoaderRef}
+							ref={infinityScrollCallback}
 						>
 							<Loader />
 							{isLaunchesFetching && <p>Loading ...</p>}
-							{isLaunchesError && <p>Server error ...</p>}
 						</Box >}
+
+					{isLaunchesError &&
+						<Box
+							className={classes.loaderWrapper}
+						>
+							<p>Server error ...</p>
+						</Box>}
 
 				</Grid>
 			</div>
